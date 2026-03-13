@@ -194,7 +194,7 @@ pipeline {
             steps {
                 echo "Updating Kubernetes deployment with new image..."
                 // Ensure the deployment exists; otherwise apply deployment.yaml
-                bat "kubectl apply -f deployment.yaml"
+                bat "kubectl apply -f %WORKSPACE%\\deployment.yaml"
                 bat "kubectl --context=minikube set image deployment/react-app react-container=%DOCKER_IMAGE%:%DOCKER_TAG%"
             }
         }
