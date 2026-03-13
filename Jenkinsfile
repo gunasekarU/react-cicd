@@ -27,11 +27,20 @@ pipeline {
             }
         }
 
+        // stage('Push Docker Image') {
+        //     steps {
+        //         bat "docker push gunasekar2066/react-cicd:${BUILD_NUMBER}"
+        //     }
+        // }
+
         stage('Push Docker Image') {
-            steps {
-                bat "docker push gunasekar2066/react-cicd:${BUILD_NUMBER}"
+                steps {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                        bat 'docker login -u %USER% -p %PASS%'
+                        bat "docker push gunasekar2066/react-cicd:${BUILD_NUMBER}"
+                    }
+                }
             }
-        }
 
         stage('Deploy Kubernetes') {
             steps {
