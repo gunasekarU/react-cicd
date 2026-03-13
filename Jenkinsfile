@@ -21,22 +21,21 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+     stage('Build Docker Image') {
             steps {
-                bat 'docker build -t gunasekar2066/react-cicd .'
+                bat "docker build -t gunasekar2066/react-cicd:${BUILD_NUMBER} ."
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                bat 'docker push gunasekar2066/react-cicd'
+                bat "docker push gunasekar2066/react-cicd:${BUILD_NUMBER}"
             }
         }
 
         stage('Deploy Kubernetes') {
             steps {
-                bat 'kubectl apply -f k8s/deployment.yaml'
-                bat 'kubectl apply -f k8s/service.yaml'
+                bat "kubectl set image deployment/react-app react-container=gunasekar2066/react-cicd:${BUILD_NUMBER}"
             }
         }
     }

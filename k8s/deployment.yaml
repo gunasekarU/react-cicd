@@ -14,6 +14,7 @@ spec:
     spec:
       containers:
       - name: react-container
-        image: gunasekar2066/react-cicd
+        image: gunasekar2066/react-cicd:1
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
