@@ -68,40 +68,107 @@
 // }
 
 
+// pipeline {
+//     agent any
+
+//     environment {
+//         DOCKER_IMAGE = "gunasekar2066/react-cicd"
+//         DOCKER_TAG = "${BUILD_NUMBER}"
+//     }
+
+//     stages {
+
+//         stage('Install Dependencies') {
+//             steps {
+//                 // Install npm dependencies
+//                 bat 'npm install'
+//             }
+//         }
+
+//         stage('Build React Project') {
+//             steps {
+//                 // Create production build
+//                 bat 'npm run build'
+//             }
+//         }
+
+//         stage('Build Docker Image') {
+//             steps {
+//                 // Build Docker image with tag as BUILD_NUMBER
+//                 bat "docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% ."
+//             }
+//         }
+
+//         stage('Login to Docker Hub') {
+//             steps {
+//                 // Use Jenkins stored credentials
+//                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+//                     bat 'docker login -u %USER% -p %PASS%'
+//                 }
+//             }
+//         }
+
+//         stage('Push Docker Image') {
+//             steps {
+//                 // Push image to Docker Hub
+//                 bat "docker push %DOCKER_IMAGE%:%DOCKER_TAG%"
+//             }
+//         }
+
+//         stage('Deploy to Kubernetes') {
+//             steps {
+//                 // Make sure minikube/Docker Desktop Kubernetes is running manually
+//                 // Deploy new image to your deployment
+//                 bat "kubectl --context=minikube set image deployment/react-app react-container=%DOCKER_IMAGE%:%DOCKER_TAG%"
+//             }
+//         }
+//     }
+
+//     post {
+//         always {
+//             echo "Build #${BUILD_NUMBER} finished"
+//         }
+//     }
+// }
+
+
+
 pipeline {
     agent any
 
     environment {
         DOCKER_IMAGE = "gunasekar2066/react-cicd"
         DOCKER_TAG = "${BUILD_NUMBER}"
+        // Set kubeconfig path for Jenkins
+        KUBECONFIG = "C:\\ProgramData\\Jenkins\\.kube\\config"
     }
 
     stages {
 
         stage('Install Dependencies') {
             steps {
-                // Install npm dependencies
+                echo "Installing npm dependencies..."
                 bat 'npm install'
             }
         }
 
         stage('Build React Project') {
             steps {
-                // Create production build
+                echo "Building React project..."
                 bat 'npm run build'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                // Build Docker image with tag as BUILD_NUMBER
+                echo "Building Docker image..."
                 bat "docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% ."
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                // Use Jenkins stored credentials
+                echo "Logging in to Docker Hub..."
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     bat 'docker login -u %USER% -p %PASS%'
                 }
@@ -110,18 +177,40 @@ pipeline {
 
         stage('Push Docker Image') {
             steps {
-                // Push image to Docker Hub
+                echo "Pushing Docker image..."
                 bat "docker push %DOCKER_IMAGE%:%DOCKER_TAG%"
+            }
+        }
+
+        stage('Test Kubernetes Connection') {
+            steps {
+                echo "Testing kubectl connection..."
+                // This ensures Jenkins can reach the Minikube cluster
+                bat 'kubectl get nodes'
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                // Make sure minikube/Docker Desktop Kubernetes is running manually
-                // Deploy new image to your deployment
+                echo "Updating Kubernetes deployment with new image..."
+                // Ensure the deployment exists; otherwise apply deployment.yaml
+                bat "kubectl apply -f deployment.yaml"
                 bat "kubectl --context=minikube set image deployment/react-app react-container=%DOCKER_IMAGE%:%DOCKER_TAG%"
             }
         }
+
+        stage('Expose Service') {
+            steps {
+                echo "Exposing React app service..."
+                // Optional: create service if not exists
+                bat '''
+                kubectl get svc react-app || kubectl expose deployment react-app --type=NodePort --name=react-app --port=3000 --target-port=3000
+                '''
+                // Get NodePort to access app
+                bat 'kubectl get svc react-app'
+            }
+        }
+
     }
 
     post {
