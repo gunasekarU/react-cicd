@@ -42,9 +42,15 @@ pipeline {
                 }
             }
 
+        // stage('Deploy Kubernetes') {
+        //     steps {
+        //         bat "kubectl set image deployment/react-app react-container=gunasekar2066/react-cicd:${BUILD_NUMBER}"
+        //     }
+        // }
         stage('Deploy Kubernetes') {
             steps {
-                bat "kubectl set image deployment/react-app react-container=gunasekar2066/react-cicd:${BUILD_NUMBER}"
+                bat 'set KUBECONFIG=C:\\Users\\2415\\.kube\\config'
+                bat 'kubectl set image deployment/react-app react-container=gunasekar2066/react-cicd:%BUILD_NUMBER%'
             }
         }
     }
