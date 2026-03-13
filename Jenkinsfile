@@ -3,11 +3,11 @@ pipeline {
 
     stages {
 
-        stage('Clone Repository') {
-            steps {
-                git 'https://github.com/gunasekarU/react-cicd.git'
-            }
-        }
+        // stage('Clone Repository') {
+        //     steps {
+        //         git 'https://github.com/gunasekarU/react-cicd.git'
+        //     }
+        // }
 
         stage('Install Dependencies') {
             steps {
